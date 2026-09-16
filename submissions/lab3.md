@@ -181,3 +181,44 @@ Cache poisoning happens when an attacker manages to place malicious or modified 
 This can be dangerous because cached files may later be used or executed by a workflow with greater privileges.
 
 GitHub restricts cache access between branches and workflow contexts to reduce this risk. Cache contents should still be treated as potentially untrusted, and secrets should never be stored in caches.
+
+## Bonus Task — Pipeline Performance Investigation
+
+### B.1 — Profiling
+
+The CI timing breakdown showed that most of the pipeline time is not spent in `go vet` itself.
+
+Observed examples:
+
+| Job | Total time | Setup Go | Actual work |
+|---|---:|---:|---:|
+| `vet (1.23)` | 14 s | 11 s | ~0 s |
+| `test (1.23)` | 33 s | 11 s | 17 s |
+| `lint` | 21 s | 3 s | 12 s |
+
+The main remaining cost is toolchain setup and the actual test/lint execution. `go vet` itself is very fast.
+
+### B.2 — Additional optimizations
+
+I applied three additional optimizations beyond Task 2:
+
+1. Added `GOFLAGS=-buildvcs=false` to avoid unnecessary VCS metadata processing in CI.
+2. Added logic to skip the expensive lint setup and `golangci-lint` execution when only Markdown documentation files changed.
+3. Added workflow concurrency with `cancel-in-progress: true`, so outdated CI runs on the same branch/PR are cancelled when a newer commit is pushed.
+
+I also tested disabling cache for `vet`, but the measured run became slower (`35 s → 45 s`), so this change was reverted.
+
+### B.3 — Before / after
+
+| Optimization applied | Before (s) | After (s) | Saving |
+|---|---:|---:|---:|
+| `GOFLAGS=-buildvcs=false` | 38–40 | 35 | ~3–5 s |
+| Skip lint for docs-only changes | 35 | 34 | ~1 s |
+| Cancel superseded runs with concurrency | 42 median | 42 median | No single-run speedup; saves runner time when new commits supersede old runs |
+| **Final wall-clock** | **~39–40** | **~42 median across 39/42/43 s runs** | **Still well below the 90 s target** |
+
+The final workflow was measured three times after the concurrency change: `42 s`, `43 s`, and `39 s`, giving a median of `42 s`.
+
+### B.4 — Bottleneck analysis
+
+The remaining dominant costs are Go toolchain setup, the race-enabled test suite, and lint execution. `go vet` itself takes almost no meaningful execution time, while setup overhead is much larger. The `go test -race` step is the most expensive actual code-checking operation, taking around 17 seconds in the measured run. To reduce this further, QuickNotes itself would need fewer or faster tests, less expensive race-enabled execution, or a prebuilt CI environment with the Go toolchain and linter already installed. I would stop optimizing at around the current 40-second wall-clock because it is already far below the 90-second target and further improvements would add complexity for very small gains.
