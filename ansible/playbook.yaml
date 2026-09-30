@@ -9,7 +9,7 @@
     quicknotes_group: quicknotes
     quicknotes_data_dir: /var/lib/quicknotes
     quicknotes_bin_path: /usr/local/bin/quicknotes
-    quicknotes_addr: ":9090"
+    quicknotes_addr: ":8080"
     quicknotes_seed_src: files/seed.json
     quicknotes_bin_src: files/quicknotes
 
