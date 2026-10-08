@@ -246,3 +246,48 @@ The following excerpt contains the first 30 lines of the generated CycloneDX SBO
           "name": "aquasecurity:trivy:DiffID",
           "value": "sha256:114dde0fefebbca13165d0da9c500a66190e497a82a53dcaabc3172d630be1e9"
 ```
+
+## 11. Trivy CI Scan Evidence and Triage
+
+The following results were obtained from the successful GitHub Actions Security Scan on October 8, 2026.
+
+### Container Image Scan
+
+Command executed by the CI workflow: `trivy image quicknotes:security`
+
+| Target | Type | Vulnerabilities |
+| --- | --- | --- |
+| quicknotes:security (Debian 12.15) | debian | 0 |
+| healthcheck | gobinary | 0 |
+| quicknotes | gobinary | 0 |
+
+No vulnerabilities were reported in the scanned container image.
+
+### Repository Filesystem Scan
+
+Command executed by the CI workflow: `trivy fs .`
+
+| Target | Type | Vulnerabilities |
+| --- | --- | --- |
+| app/go.mod | gomod | 0 |
+
+The CI repository scan reported no vulnerabilities. The locally detected private keys were not committed to Git and were therefore absent from the CI checkout.
+
+### Configuration Scan
+
+Command executed by the CI workflow: `trivy config .`
+
+| Target | Type | Misconfigurations |
+| --- | --- | --- |
+| app/Dockerfile | dockerfile | 0 |
+
+No configuration findings were reported by the CI scan.
+
+### HIGH/CRITICAL Finding Triage
+
+| Finding | Disposition | Justification |
+| --- | --- | --- |
+| Previously vulnerable Go builder image | FIX | Updated the Go builder image and rebuilt the application. The final CI image scan reported zero vulnerabilities. |
+| Local untracked private keys | FIX | Excluded the private keys from Git. They are not present in the CI checkout. Local development keys must remain outside version control. |
+
+No HIGH or CRITICAL vulnerabilities were reported in the final CI scans.
