@@ -49,6 +49,9 @@ func (sw *statusWriter) WriteHeader(code int) {
 
 func (s *Server) wrap(h http.HandlerFunc) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
+		w.Header().Set("X-Content-Type-Options", "nosniff")
+		w.Header().Set("Cache-Control", "no-store")
+		w.Header().Set("Cross-Origin-Resource-Policy", "same-origin")
 		sw := &statusWriter{ResponseWriter: w, code: 200}
 		h(sw, r)
 		s.requestsTotal.Add(1)

@@ -59,20 +59,50 @@ func envOrDefault(k, def string) string {
 }
 
 func ensureSeeded(dataPath, seedPath string) error {
-	if _, err := os.Stat(dataPath); err == nil {
-		return nil
+	dataDir := dirname(dataPath)
+	dataName := dataPath[len(dataDir):]
+	if len(dataName) > 0 && dataName[0] == '/' {
+		dataName = dataName[1:]
 	}
-	if err := os.MkdirAll(dirname(dataPath), 0o755); err != nil {
+
+	if err := os.MkdirAll(dataDir, 0o750); err != nil {
 		return err
 	}
-	seed, err := os.ReadFile(seedPath)
+
+	dataRoot, err := os.OpenRoot(dataDir)
+	if err != nil {
+		return err
+	}
+	defer dataRoot.Close()
+
+	if _, err := dataRoot.Stat(dataName); err == nil {
+		return nil
+	}
+
+	seedDir := dirname(seedPath)
+	seedName := seedPath[len(seedDir):]
+	if len(seedName) > 0 && seedName[0] == '/' {
+		seedName = seedName[1:]
+	}
+
+	seedRoot, err := os.OpenRoot(seedDir)
 	if err != nil {
 		if errors.Is(err, os.ErrNotExist) {
-			return os.WriteFile(dataPath, []byte("[]"), 0o644)
+			return dataRoot.WriteFile(dataName, []byte("[]"), 0o600)
 		}
 		return err
 	}
-	return os.WriteFile(dataPath, seed, 0o644)
+	defer seedRoot.Close()
+
+	seed, err := seedRoot.ReadFile(seedName)
+	if err != nil {
+		if errors.Is(err, os.ErrNotExist) {
+			return dataRoot.WriteFile(dataName, []byte("[]"), 0o600)
+		}
+		return err
+	}
+
+	return dataRoot.WriteFile(dataName, seed, 0o600)
 }
 
 func dirname(p string) string {

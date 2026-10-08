@@ -1,0 +1,69 @@
+name: Security Checks
+
+on:
+  push:
+    branches: [main, feature/lab9]
+  pull_request:
+
+permissions:
+  contents: read
+
+jobs:
+  security:
+    name: Security Scan
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Go
+        uses: actions/setup-go@v5
+        with:
+          go-version: '1.26.6'
+          cache-dependency-path: app/go.mod
+
+      - name: Run unit tests
+        working-directory: app
+        run: go test ./...
+
+      - name: Run gosec
+        working-directory: app
+        run: |
+          go install github.com/securego/gosec/v2/cmd/gosec@v2.22.11
+          "$(go env GOPATH)/bin/gosec" -confidence high ./...
+
+      - name: Build Docker image
+        run: docker build -t quicknotes:security ./app
+
+      - name: Scan Docker image with Trivy
+        uses: aquasecurity/trivy-action@0.33.1
+        with:
+          image-ref: quicknotes:security
+          format: table
+          severity: HIGH,CRITICAL
+          exit-code: '1'
+
+      - name: Scan repository with Trivy
+        uses: aquasecurity/trivy-action@0.33.1
+        with:
+          scan-type: fs
+          scan-ref: .
+          severity: HIGH,CRITICAL
+          exit-code: '1'
+
+      - name: Generate CycloneDX SBOM
+        uses: aquasecurity/trivy-action@0.33.1
+        with:
+          image-ref: quicknotes:security
+          format: cyclonedx
+          output: sbom.cdx.json
+          exit-code: '0'
+
+      - name: Upload SBOM
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: security-sbom
+          path: sbom.cdx.json
+          if-no-files-found: warn

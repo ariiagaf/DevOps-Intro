@@ -54,6 +54,16 @@ func TestHealth_ReportsCount(t *testing.T) {
 	}
 }
 
+func TestHealth_SecurityHeaders(t *testing.T) {
+	srv := newTestServer(t)
+
+	rec := do(t, srv, http.MethodGet, "/health", nil)
+
+	if got := rec.Header().Get("X-Content-Type-Options"); got != "nosniff" {
+		t.Errorf("X-Content-Type-Options = %q, want %q", got, "nosniff")
+	}
+}
+
 func TestCreateNote_RoundTrip(t *testing.T) {
 	srv := newTestServer(t)
 	rec := do(t, srv, http.MethodPost, "/notes", map[string]string{
@@ -130,4 +140,3 @@ func TestMetrics_ExposesPrometheusFormat(t *testing.T) {
 		}
 	}
 }
-
