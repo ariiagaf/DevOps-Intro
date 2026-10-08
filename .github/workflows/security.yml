@@ -39,6 +39,7 @@ jobs:
       - name: Scan Docker image with Trivy
         uses: aquasecurity/trivy-action@v0.33.1
         with:
+          trivy-version: 'v0.75.0'
           image-ref: quicknotes:security
           format: table
           severity: HIGH,CRITICAL
@@ -47,6 +48,7 @@ jobs:
       - name: Scan repository with Trivy
         uses: aquasecurity/trivy-action@v0.33.1
         with:
+          trivy-version: 'v0.75.0'
           scan-type: fs
           scan-ref: .
           severity: HIGH,CRITICAL
@@ -55,9 +57,9 @@ jobs:
       - name: Scan configurations with Trivy
         uses: aquasecurity/trivy-action@v0.33.1
         with:
+          trivy-version: 'v0.75.0'
           scan-type: config
           scan-ref: .
-          trivy-version: 'v0.75.0'
           format: table
           severity: HIGH,CRITICAL
           exit-code: '1'
@@ -65,6 +67,7 @@ jobs:
       - name: Generate CycloneDX SBOM
         uses: aquasecurity/trivy-action@v0.33.1
         with:
+          trivy-version: 'v0.75.0'
           image-ref: quicknotes:security
           format: cyclonedx
           output: sbom.cdx.json
