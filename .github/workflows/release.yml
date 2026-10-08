@@ -46,7 +46,7 @@ jobs:
           RENDER_DEPLOY_HOOK: ${{ secrets.RENDER_DEPLOY_HOOK }}
           IMAGE_URL: ghcr.io/ariiagaf/devops-intro/quicknotes:${{ github.ref_name }}
         run: |
-          curl --fail --show-error --silent \
+          curl --fail --show-error --silent --globoff \
             --get \
             --data-urlencode "imgURL=${IMAGE_URL}" \
             "${RENDER_DEPLOY_HOOK}"
