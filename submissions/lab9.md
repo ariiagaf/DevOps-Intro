@@ -156,3 +156,93 @@ The final container image had no detected HIGH or CRITICAL vulnerabilities, the 
 The ZAP before-and-after comparison demonstrated improvements in HTTP response security, while the remaining warnings and scanning limitations were documented.
 
 Security reports and the CycloneDX SBOM are preserved as evidence for review.
+
+## 8. Detailed OWASP ZAP Findings and Triage
+
+| ID | Finding | Risk | Affected URL | Disposition | Reason |
+| --- | --- | --- | --- | --- | --- |
+| 90004 | Cross-Origin-Resource-Policy Header Missing or Invalid | Low | `/health` | FIX | Added `Cross-Origin-Resource-Policy: same-origin` through HTTP middleware. The header is present in the current HTTP response, and the finding is absent from `zap-after.json`. |
+| 10049 | Storable and Cacheable Content | Informational | `/`, `/robots.txt`, root URL | ACCEPT | No sensitive content was identified in the affected responses. Re-evaluate by 2027-01-08. |
+| 10049 | Non-Storable Content | Informational | `/health`, `/notes` | ACCEPT | The `Cache-Control: no-store` policy is intentional. Re-evaluate by 2027-01-08. |
+
+### Verification
+
+The running application returned HTTP 200 for `/health` with the following security headers:
+
+- `Cache-Control: no-store`
+- `Cross-Origin-Resource-Policy: same-origin`
+- `X-Content-Type-Options: nosniff`
+
+The ZAP reports are stored in `submissions/lab9/`.
+
+## 9. Design Questions
+
+### Task 1: Trivy
+
+**a) What factors matter beyond CVE severity when triaging vulnerabilities?**
+
+Severity alone does not determine the actual risk. We must consider whether the vulnerable component is reachable, whether a working exploit exists, whether the application is exposed to the internet, and what privileges an attacker could gain. A HIGH vulnerability in an unused component may be less urgent than a MEDIUM vulnerability in a publicly accessible endpoint.
+
+**b) Why are minimal container images an effective security control?**
+
+Minimal images contain fewer packages, libraries, and utilities, reducing the attack surface and the number of potential vulnerabilities. They also reduce the amount of software that needs to be monitored and patched. However, minimal images still require regular updates and vulnerability scanning.
+
+**c) When is using `.trivyignore` appropriate, and when is it security theater?**
+
+Ignoring a finding is appropriate when it has been investigated and confirmed as a false positive or when the risk has been formally accepted with a documented justification and review date. Using `.trivyignore` simply to make security checks pass without addressing the underlying risk is security theater.
+
+**d) What future problem does an SBOM solve?**
+
+An SBOM provides an inventory of software components and their versions. When a new vulnerability such as Log4Shell is disclosed, the team can quickly determine whether the affected component exists in the application instead of manually inspecting every dependency.
+
+### Task 2: OWASP ZAP
+
+**e) Why use middleware instead of setting headers in individual handlers?**
+
+Middleware applies security headers consistently across all routes. This avoids duplicated code and prevents developers from accidentally forgetting security headers when adding new endpoints. It also makes the security policy easier to maintain and test.
+
+**f) What does `Content-Security-Policy: default-src 'none'` break, and why is it suitable for an API?**
+
+This policy blocks loading scripts, stylesheets, images, fonts, and other resources by default. It can break a traditional website that depends on these resources. QuickNotes is primarily a JSON API, so it does not need browser-rendered scripts or stylesheets for its API responses. However, the policy would need adjustment if a web interface such as Swagger UI were added.
+
+**g) What is the danger of accepting all informational ZAP findings without reviewing them?**
+
+Informational findings can reveal insecure configurations or weaknesses that become exploitable when combined with other issues. Automatically accepting every finding may hide real risks and create a false sense of security. Each finding should be evaluated individually, with a documented reason for accepting, fixing, or suppressing it.
+
+
+## 10. CycloneDX SBOM Evidence
+
+The following excerpt contains the first 30 lines of the generated CycloneDX SBOM:
+
+```json
+{
+  "$schema": "http://cyclonedx.org/schema/bom-1.7.schema.json",
+  "bomFormat": "CycloneDX",
+  "specVersion": "1.7",
+  "serialNumber": "urn:uuid:e824bc6b-6fbb-4013-aa04-6f8242da3489",
+  "version": 1,
+  "metadata": {
+    "timestamp": "2026-10-08T18:50:03+00:00",
+    "tools": {
+      "components": [
+        {
+          "type": "application",
+          "manufacturer": {
+            "name": "Aqua Security Software Ltd."
+          },
+          "group": "aquasecurity",
+          "name": "trivy",
+          "version": "0.75.0"
+        }
+      ]
+    },
+    "component": {
+      "bom-ref": "pkg:oci/quicknotes@sha256:4af8c461660bf9c447e6a1777e6ea20f39853198ee909cd7ad6ba55ce46172bc?arch=arm64&repository_url=index.docker.io%2Flibrary%2Fquicknotes",
+      "type": "container",
+      "name": "quicknotes:lab6",
+      "purl": "pkg:oci/quicknotes@sha256:4af8c461660bf9c447e6a1777e6ea20f39853198ee909cd7ad6ba55ce46172bc?arch=arm64&repository_url=index.docker.io%2Flibrary%2Fquicknotes",
+      "properties": [
+        {
+          "name": "aquasecurity:trivy:DiffID",
+          "value": "sha256:114dde0fefebbca13165d0da9c500a66190e497a82a53dcaabc3172d630be1e9"
+```
