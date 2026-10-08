@@ -41,3 +41,12 @@ jobs:
           push: true
           tags: ${{ steps.meta.outputs.tags }}
           labels: ${{ steps.meta.outputs.labels }}
+      - name: Deploy to Render
+        env:
+          RENDER_DEPLOY_HOOK: ${{ secrets.RENDER_DEPLOY_HOOK }}
+          IMAGE_URL: ghcr.io/ariiagaf/devops-intro/quicknotes:${{ github.ref_name }}
+        run: |
+          curl --fail --show-error --silent \
+            --get \
+            --data-urlencode "imgURL=${IMAGE_URL}" \
+            "${RENDER_DEPLOY_HOOK}"
