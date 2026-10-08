@@ -3,6 +3,9 @@ name: Verify Public GHCR Pull
 
 on:
   workflow_dispatch:
+  push:
+    branches:
+      - feature/lab10
 
 permissions:
   contents: read
