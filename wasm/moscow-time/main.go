@@ -7,6 +7,7 @@ import (
 	"time"
 
 	spinhttp "github.com/spinframework/spin-go-sdk/v2/http"
+	println("DEBUG: handler started")
 )
 
 func init() {
