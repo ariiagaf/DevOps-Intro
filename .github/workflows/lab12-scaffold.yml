@@ -46,12 +46,30 @@ jobs:
 
       - name: Test HTTP endpoint
         working-directory: wasm/moscow-time
+        shell: bash
         run: |
           "$GITHUB_WORKSPACE/spin" up --listen 127.0.0.1:3000 > spin.log 2>&1 &
+          SPIN_PID=$!
+
           sleep 5
+          echo "===== Spin startup log ====="
           cat spin.log
-          curl --fail-with-body -i http://127.0.0.1:3000/time
-          find .spin/logs -type f -exec sh -c 'echo "=== $1 ==="; cat "$1"' _ {} \;
+
+          echo "===== HTTP response ====="
+          if curl --fail-with-body -i http://127.0.0.1:3000/time; then
+            CURL_STATUS=0
+          else
+            CURL_STATUS=$?
+          fi
+
+          echo "===== Component logs ====="
+          if [ -d .spin/logs ]; then
+            find .spin/logs -type f \
+              -exec sh -c 'echo "=== $1 ==="; cat "$1"' _ {} \;
+          fi
+
+          kill "$SPIN_PID" 2>/dev/null || true
+          exit "$CURL_STATUS"
 
       - name: Upload WASM artifact
         uses: actions/upload-artifact@v4
