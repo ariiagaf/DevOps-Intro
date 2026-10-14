@@ -42,6 +42,7 @@ func handle_http_request(req *C.spin_http_request_t, res *C.spin_http_response_t
 	println("DEBUG SDK: before NewRequest")
 
 	r, err := http.NewRequest(method, url, bytes.NewReader(body))
+	println("DEBUG SDK: after NewRequest")
 	if err != nil {
 		fmt.Fprintln(os.Stderr, err)
 		res.status = C.uint16_t(http.StatusInternalServerError)
