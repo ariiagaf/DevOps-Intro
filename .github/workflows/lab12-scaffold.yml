@@ -29,6 +29,8 @@ jobs:
           find "$HOME" -type f -name spin 2>/dev/null | head -20
           command -v spin || true
           ls -la "$HOME/.spin/bin" 2>/dev/null || true
+          ls -lh ./spin
+          file ./spin
 
       - name: Generate Go HTTP template
         run: |
