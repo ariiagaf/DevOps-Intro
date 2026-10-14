@@ -24,8 +24,8 @@ jobs:
 
       - name: Install TinyGo
         run: |
-          wget -q https://github.com/tinygo-org/tinygo/releases/download/v0.41.0/tinygo_0.41.0_amd64.deb
-          sudo dpkg -i tinygo_0.41.0_amd64.deb
+          wget -q https://github.com/tinygo-org/tinygo/releases/download/v0.43.0/tinygo_0.43.0_amd64.deb
+          sudo dpkg -i tinygo_0.43.0_amd64.deb
           tinygo version
 
       - name: Install Spin CLI
