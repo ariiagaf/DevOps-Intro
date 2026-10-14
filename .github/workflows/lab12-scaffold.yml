@@ -37,6 +37,7 @@ jobs:
         run: |
           "$GITHUB_WORKSPACE/spin" --version
           "$GITHUB_WORKSPACE/spin" templates install --git https://github.com/spinframework/spin
+          mkdir -p wasm
           cd wasm
           "$GITHUB_WORKSPACE/spin" new -t http-go moscow-time --accept-defaults
 
