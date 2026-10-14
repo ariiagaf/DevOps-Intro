@@ -20,8 +20,13 @@ func handle_http_request(req *C.spin_http_request_t, res *C.spin_http_response_t
 	if req.body.is_some {
 		body = C.GoBytes(unsafe.Pointer(req.body.val.ptr), C.int(req.body.val.len))
 	}
+	println("DEBUG SDK: before method")
 	method := methods[req.method]
+
+	println("DEBUG SDK: before headers")
 	header := fromSpinHeaders(&req.headers)
+
+	println("DEBUG SDK: before URL")
 	url := header.Get(HeaderFullUrl)
 
 	println("DEBUG SDK: before NewRequest")
