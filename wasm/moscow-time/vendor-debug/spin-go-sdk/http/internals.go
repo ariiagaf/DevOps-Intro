@@ -156,7 +156,7 @@ func fromSpinHeaders(hm *C.spin_http_headers_t) http.Header {
 		println("DEBUG SDK: after header value")
 
 		println("DEBUG SDK: before headers.Add, index =", i)
-		headers.Add(k, v)
+		headers[k] = append(headers[k], v)
 		println("DEBUG SDK: after headers.Add, index =", i)
 	}
 
