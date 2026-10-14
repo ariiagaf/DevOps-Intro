@@ -30,7 +30,7 @@ jobs:
 
       - name: Install Spin CLI
         run: |
-          curl -fsSL https://developer.fermyon.com/downloads/install.sh | bash
+          curl -fsSL https://developer.fermyon.com/downloads/install.sh | bash -s -- --version v3.4.0
           chmod +x ./spin
           ./spin --version
 
