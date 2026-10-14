@@ -49,12 +49,15 @@ func handle_http_request(req *C.spin_http_request_t, res *C.spin_http_response_t
 		return
 	}
 
+	println("DEBUG SDK: before assigning request fields")
 	r.Header = header
 	r.Host = r.Header.Get("Host")
 	r.RequestURI = C.GoStringN(req.uri.ptr, C.int(req.uri.len))
 	r.RemoteAddr = r.Header.Get(HeaderClientAddr)
+	println("DEBUG SDK: after assigning request fields")
 
 	w := newResponse()
+	println("DEBUG SDK: after newResponse")
 
 	println("DEBUG SDK: before handler")
 
