@@ -21,7 +21,8 @@ jobs:
       - name: Install Spin CLI
         run: |
           curl -fsSL https://developer.fermyon.com/downloads/install.sh | bash
-          echo "$HOME/.spin/bin" >> "$GITHUB_PATH"
+          chmod +x ./spin
+          echo "$GITHUB_WORKSPACE" >> "$GITHUB_PATH"
 
       - name: Check Spin installation
         run: |
@@ -34,9 +35,10 @@ jobs:
 
       - name: Generate Go HTTP template
         run: |
-          spin templates install --git https://github.com/spinframework/spin
+          "$GITHUB_WORKSPACE/spin" --version
+          "$GITHUB_WORKSPACE/spin" templates install --git https://github.com/spinframework/spin
           cd wasm
-          spin new -t http-go moscow-time --accept-defaults
+          "$GITHUB_WORKSPACE/spin" new -t http-go moscow-time --accept-defaults
 
       - name: Upload generated files
         uses: actions/upload-artifact@v4
