@@ -1,5 +1,4 @@
-
-name: Lab 12 - Spin Scaffold
+name: Lab 12 - Build WASM
 
 on:
   push:
@@ -11,40 +10,34 @@ permissions:
   contents: read
 
 jobs:
-  scaffold:
+  build:
     runs-on: ubuntu-latest
 
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
 
+      - name: Install TinyGo
+        run: |
+          wget -q https://github.com/tinygo-org/tinygo/releases/download/v0.41.0/tinygo_0.41.0_amd64.deb
+          sudo dpkg -i tinygo_0.41.0_amd64.deb
+          tinygo version
+
       - name: Install Spin CLI
         run: |
           curl -fsSL https://developer.fermyon.com/downloads/install.sh | bash
           chmod +x ./spin
-          echo "$GITHUB_WORKSPACE" >> "$GITHUB_PATH"
+          ./spin --version
 
-      - name: Check Spin installation
+      - name: Build WebAssembly
+        working-directory: wasm/moscow-time
         run: |
-          echo "HOME=$HOME"
-          find "$HOME" -type f -name spin 2>/dev/null | head -20
-          command -v spin || true
-          ls -la "$HOME/.spin/bin" 2>/dev/null || true
-          ls -lh ./spin
-          file ./spin
+          go mod download
+          "$GITHUB_WORKSPACE/spin" build
+          ls -lh main.wasm
 
-      - name: Generate Go HTTP template
-        run: |
-          "$GITHUB_WORKSPACE/spin" --version
-          "$GITHUB_WORKSPACE/spin" templates install --git https://github.com/spinframework/spin
-          mkdir -p wasm
-          cd wasm
-          "$GITHUB_WORKSPACE/spin" new -t http-go moscow-time --accept-defaults
-
-      - name: Upload generated files
+      - name: Upload WASM artifact
         uses: actions/upload-artifact@v4
         with:
-          name: lab12-spin-template
-          path: wasm/moscow-time/
-          include-hidden-files: true
-
+          name: lab12-moscow-time-wasm
+          path: wasm/moscow-time/main.wasm
