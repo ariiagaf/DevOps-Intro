@@ -139,9 +139,14 @@ func fromSpinHeaders(hm *C.spin_http_headers_t) http.Header {
 	headers := make(http.Header, headersLen)
 
 	var headersArr *C.spin_http_tuple2_string_string_t = hm.ptr
+	println("DEBUG SDK: before unsafe.Slice")
 	headersSlice := unsafe.Slice(headersArr, headersLen)
+	println("DEBUG SDK: after unsafe.Slice")
+
 	for i := 0; i < headersLen; i++ {
+		println("DEBUG SDK: reading header index =", i)
 		tuple := headersSlice[i]
+		println("DEBUG SDK: header tuple loaded")
 		k := C.GoStringN(tuple.f0.ptr, C.int(tuple.f0.len))
 		v := C.GoStringN(tuple.f1.ptr, C.int(tuple.f1.len))
 
