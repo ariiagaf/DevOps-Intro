@@ -23,8 +23,12 @@ jobs:
           curl -fsSL https://developer.fermyon.com/downloads/install.sh | bash
           echo "$HOME/.spin/bin" >> "$GITHUB_PATH"
 
-      - name: Check Spin version
-        run: spin --version
+      - name: Check Spin installation
+        run: |
+          echo "HOME=$HOME"
+          find "$HOME" -type f -name spin 2>/dev/null | head -20
+          command -v spin || true
+          ls -la "$HOME/.spin/bin" 2>/dev/null || true
 
       - name: Generate Go HTTP template
         run: |
