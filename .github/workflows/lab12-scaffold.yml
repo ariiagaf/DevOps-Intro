@@ -2,6 +2,9 @@
 name: Lab 12 - Spin Scaffold
 
 on:
+  push:
+    branches:
+      - feature/lab12
   workflow_dispatch:
 
 permissions:
