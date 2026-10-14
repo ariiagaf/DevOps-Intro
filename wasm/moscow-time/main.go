@@ -10,10 +10,8 @@ import (
 )
 
 func init() {
-	println("DEBUG: init started")
 
 	spinhttp.Handle(func(w http.ResponseWriter, r *http.Request) {
-		println("DEBUG: handler started")
 		if r.Method != http.MethodGet {
 			http.Error(w, "Not Found", http.StatusNotFound)
 			return
@@ -31,7 +29,6 @@ func init() {
 		)
     })
 
-        println("DEBUG: handler registered")
 }
 
 func main() {}

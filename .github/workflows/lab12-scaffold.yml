@@ -50,7 +50,7 @@ jobs:
           "$GITHUB_WORKSPACE/spin" up --listen 127.0.0.1:3000 > spin.log 2>&1 &
           sleep 5
           cat spin.log
-          curl -i http://127.0.0.1:3000/time
+          curl --fail-with-body -i http://127.0.0.1:3000/time
           find .spin/logs -type f -exec sh -c 'echo "=== $1 ==="; cat "$1"' _ {} \;
 
       - name: Upload WASM artifact
