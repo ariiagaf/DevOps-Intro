@@ -29,7 +29,9 @@ func init() {
 			now.Format(time.RFC3339),
 			now.Format("15:04"),
 		)
-	})
+    })
+
+        println("DEBUG: handler registered")
 }
 
 func main() {}
