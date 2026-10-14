@@ -44,6 +44,14 @@ jobs:
           "$GITHUB_WORKSPACE/spin" build
           ls -lh main.wasm
 
+      - name: Test HTTP endpoint
+        working-directory: wasm/moscow-time
+        run: |
+          "$GITHUB_WORKSPACE/spin" up --listen 127.0.0.1:3000 > spin.log 2>&1 &
+          sleep 5
+          curl -i --fail http://127.0.0.1:3000/time
+          cat spin.log
+
       - name: Upload WASM artifact
         uses: actions/upload-artifact@v4
         with:
