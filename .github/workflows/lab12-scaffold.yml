@@ -37,6 +37,9 @@ jobs:
       - name: Build WebAssembly
         working-directory: wasm/moscow-time
         run: |
+          go version
+          tinygo version
+          tinygo env GOVERSION
           go mod download
           "$GITHUB_WORKSPACE/spin" build
           ls -lh main.wasm
