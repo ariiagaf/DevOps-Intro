@@ -1,0 +1,38 @@
+
+name: Lab 12 - Spin Scaffold
+
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  scaffold:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Install Spin CLI
+        run: |
+          curl -fsSL https://developer.fermyon.com/downloads/install.sh | bash
+          echo "$HOME/.spin/bin" >> "$GITHUB_PATH"
+
+      - name: Check Spin version
+        run: spin --version
+
+      - name: Generate Go HTTP template
+        run: |
+          spin templates install --git https://github.com/spinframework/spin
+          cd wasm
+          spin new -t http-go moscow-time --accept-defaults
+
+      - name: Upload generated files
+        uses: actions/upload-artifact@v4
+        with:
+          name: lab12-spin-template
+          path: wasm/moscow-time/
+          include-hidden-files: true
+
