@@ -11,7 +11,7 @@ import (
 
 func init() {
 	spinhttp.Handle(func(w http.ResponseWriter, r *http.Request) {
-		if r.Method != http.MethodGet || r.URL.Path != "/time" {
+		if r.Method != http.MethodGet {
 			http.Error(w, "Not Found", http.StatusNotFound)
 			return
 		}
