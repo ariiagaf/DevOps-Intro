@@ -49,8 +49,8 @@ jobs:
         run: |
           "$GITHUB_WORKSPACE/spin" up --listen 127.0.0.1:3000 > spin.log 2>&1 &
           sleep 5
-          curl -i --fail http://127.0.0.1:3000/time
           cat spin.log
+          curl -i --fail http://127.0.0.1:3000/time
 
       - name: Upload WASM artifact
         uses: actions/upload-artifact@v4
