@@ -27,7 +27,17 @@ func handle_http_request(req *C.spin_http_request_t, res *C.spin_http_response_t
 	header := fromSpinHeaders(&req.headers)
 
 	println("DEBUG SDK: before URL")
-	url := header.Get(HeaderFullUrl)
+	println("DEBUG SDK: looking for URL header")
+
+	var url string
+	for k, values := range header {
+		if k == HeaderFullUrl && len(values) > 0 {
+			url = values[0]
+			break
+		}
+	}
+
+	println("DEBUG SDK: URL =", url)
 
 	println("DEBUG SDK: before NewRequest")
 
