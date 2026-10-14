@@ -134,6 +134,8 @@ var methods = [...]string{
 
 func fromSpinHeaders(hm *C.spin_http_headers_t) http.Header {
 	headersLen := int(hm.len)
+	println("DEBUG SDK: headers length =", headersLen)
+	println("DEBUG SDK: headers pointer =", unsafe.Pointer(hm.ptr))
 	headers := make(http.Header, headersLen)
 
 	var headersArr *C.spin_http_tuple2_string_string_t = hm.ptr
