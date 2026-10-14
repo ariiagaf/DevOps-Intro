@@ -7,11 +7,11 @@ import (
 	"time"
 
 	spinhttp "github.com/spinframework/spin-go-sdk/v2/http"
-	println("DEBUG: handler started")
 )
 
 func init() {
 	spinhttp.Handle(func(w http.ResponseWriter, r *http.Request) {
+		println("DEBUG: handler started")
 		if r.Method != http.MethodGet {
 			http.Error(w, "Not Found", http.StatusNotFound)
 			return
