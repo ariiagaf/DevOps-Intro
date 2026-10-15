@@ -92,6 +92,10 @@ jobs:
         run: |
           docker build -t quicknotes:lab12 ./app
 
+      - name: Benchmark Spin vs Docker
+        run: |
+          python3 wasm/moscow-time/benchmark.py
+
       - name: Upload WASM artifact
         uses: actions/upload-artifact@v4
         with:
