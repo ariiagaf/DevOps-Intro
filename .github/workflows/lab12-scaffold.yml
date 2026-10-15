@@ -4,6 +4,7 @@ on:
   push:
     branches:
       - feature/lab12
+      - feature/lab12-clean
   workflow_dispatch:
 
 permissions:
@@ -106,17 +107,65 @@ jobs:
           docker image inspect quicknotes:lab12 \
             --format '{{.Size}} bytes'
 
+      
       - name: Build and run WASI CLI bonus
         working-directory: wasm-cli
         run: |
-          tinygo build -target=wasip1 -o time-cli.wasm main.go
+          set -euo pipefail
+
+          echo "===== Build WASI CLI ====="
+          tinygo build -o main.wasm -target=wasi -no-debug ./main.go
 
           echo "===== Install Wasmtime ====="
           curl -sSf https://wasmtime.dev/install.sh | bash
           export PATH="$HOME/.wasmtime/bin:$PATH"
 
           echo "===== WASI CLI output ====="
-          wasmtime run time-cli.wasm
+          wasmtime run \
+            --env REQUEST_METHOD=GET \
+            --env PATH_INFO=/time \
+            main.wasm
+
+          echo "===== WASI CLI size ====="
+          stat -c '%s bytes' main.wasm
+
+          echo "===== WASI CLI cold starts ====="
+          python3 - <<'PY'
+          import json
+          import statistics
+          import subprocess
+          import time
+
+          command = [
+              "wasmtime", "run",
+              "--env", "REQUEST_METHOD=GET",
+              "--env", "PATH_INFO=/time",
+              "main.wasm",
+          ]
+
+          samples = []
+
+          for i in range(5):
+              start = time.perf_counter()
+              result = subprocess.run(
+                  command,
+                  capture_output=True,
+                  text=True,
+                  check=True,
+              )
+              elapsed = (time.perf_counter() - start) * 1000
+
+              data = json.loads(result.stdout)
+              assert {"unix", "iso", "hour_minute"} <= data.keys()
+
+              samples.append(elapsed)
+              print(f"Run {i + 1}: {elapsed:.2f} ms")
+
+          print(
+              f"WASI CLI cold start median: "
+              f"{statistics.median(samples):.2f} ms"
+          )
+          PY
 
       - name: Upload WASM artifact
         uses: actions/upload-artifact@v4
