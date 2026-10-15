@@ -1,0 +1,50 @@
+name: Nix Reproducibility
+
+on:
+  push:
+  pull_request:
+
+jobs:
+  build-a:
+    runs-on: ubuntu-latest
+    outputs:
+      hash: ${{ steps.hash.outputs.value }}
+    steps:
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+      - uses: DeterminateSystems/nix-installer-action@c5a866b6ab867e88becbed4467b93592bce69f8a # v21
+
+      - name: Build Docker image
+        run: nix build .#docker
+
+      - name: Calculate SHA-256
+        id: hash
+        run: echo "value=$(sha256sum result | awk '{print $1}')" >> "$GITHUB_OUTPUT"
+
+  build-b:
+    runs-on: ubuntu-latest
+    outputs:
+      hash: ${{ steps.hash.outputs.value }}
+    steps:
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+      - uses: DeterminateSystems/nix-installer-action@c5a866b6ab867e88becbed4467b93592bce69f8a # v21
+
+      - name: Build Docker image
+        run: nix build .#docker
+
+      - name: Calculate SHA-256
+        id: hash
+        run: echo "value=$(sha256sum result | awk '{print $1}')" >> "$GITHUB_OUTPUT"
+
+  compare:
+    needs: [build-a, build-b]
+    runs-on: ubuntu-latest
+    steps:
+      - name: Compare hashes
+        env:
+          HASH_A: ${{ needs.build-a.outputs.hash }}
+          HASH_B: ${{ needs.build-b.outputs.hash }}
+        run: |
+          echo "Build A: $HASH_A"
+          echo "Build B: $HASH_B"
+          test -n "$HASH_A"
+          test "$HASH_A" = "$HASH_B"
