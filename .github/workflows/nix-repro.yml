@@ -37,6 +37,25 @@ jobs:
           echo "Nix archive SHA-256:"
           sha256sum result
 
+      - name: Compare Dockerfile builds
+        run: |
+          echo "=== Dockerfile build #1 ==="
+          docker build --no-cache -t quicknotes:classic-1 ./app
+          docker image inspect quicknotes:classic-1 \
+            --format 'Size: {{.Size}} bytes; ID: {{.Id}}'
+
+          echo "=== Dockerfile build #2 ==="
+          docker build --no-cache -t quicknotes:classic-2 ./app
+          docker image inspect quicknotes:classic-2 \
+            --format 'Size: {{.Size}} bytes; ID: {{.Id}}'
+
+          echo "=== Nix image ==="
+          docker image inspect quicknotes:nix \
+            --format 'Size: {{.Size}} bytes; ID: {{.Id}}'
+
+          echo "=== Full image IDs ==="
+          docker images --no-trunc
+
       - name: Calculate SHA-256
         id: hash
         run: echo "value=$(sha256sum result | awk '{print $1}')" >> "$GITHUB_OUTPUT"
