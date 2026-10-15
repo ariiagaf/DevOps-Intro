@@ -95,7 +95,17 @@ jobs:
       - name: Benchmark Spin vs Docker
         run: |
           python3 wasm/moscow-time/benchmark.py
-          
+
+      - name: Measure artifact sizes
+        run: |
+          echo "===== WASM size ====="
+          ls -lh wasm/moscow-time/main.wasm
+          stat -c '%s bytes' wasm/moscow-time/main.wasm
+
+          echo "===== Docker image size ====="
+          docker image inspect quicknotes:lab12 \
+            --format '{{.Size}} bytes'
+
       - name: Build and run WASI CLI bonus
         working-directory: wasm/moscow-time
         run: |
