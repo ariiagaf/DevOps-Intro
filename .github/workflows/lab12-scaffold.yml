@@ -63,6 +63,17 @@ jobs:
             CURL_STATUS=$?
           fi
 
+          echo "===== POST method test ====="
+          POST_STATUS=$(curl -s -o /dev/null -w "%{http_code}" \
+            -X POST http://127.0.0.1:3000/time)
+
+          echo "POST returned HTTP $POST_STATUS"
+
+          if [ "$POST_STATUS" != "405" ]; then
+            echo "ERROR: POST must return HTTP 405"
+            CURL_STATUS=1
+          fi
+
           echo "===== Component logs ====="
           if [ -d .spin/logs ]; then
             find .spin/logs -type f \
