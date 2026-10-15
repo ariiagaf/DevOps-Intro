@@ -28,6 +28,15 @@ jobs:
           echo "=== Health check ==="
           curl -i http://localhost:8080/health
 
+      - name: Measure Nix image size
+        run: |
+          echo "Nix image archive:"
+          du -hL result
+          echo "Docker image size:"
+          docker image inspect quicknotes:nix --format '{{.Size}} bytes'
+          echo "Nix archive SHA-256:"
+          sha256sum result
+
       - name: Calculate SHA-256
         id: hash
         run: echo "value=$(sha256sum result | awk '{print $1}')" >> "$GITHUB_OUTPUT"
