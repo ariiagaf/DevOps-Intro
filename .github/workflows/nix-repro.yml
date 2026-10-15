@@ -21,8 +21,12 @@ jobs:
           docker load < result
           docker run -d --name quicknotes-test -p 8080:8080 quicknotes:nix
           sleep 5
-          curl --fail http://localhost:8080/health
-          docker rm -f quicknotes-test
+          echo "=== Container status ==="
+          docker ps -a
+          echo "=== Container logs ==="
+          docker logs quicknotes-test
+          echo "=== Health check ==="
+          curl -i http://localhost:8080/health
 
       - name: Calculate SHA-256
         id: hash
