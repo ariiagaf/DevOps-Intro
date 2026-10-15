@@ -16,6 +16,11 @@ jobs:
       - name: Build Docker image
         run: nix build .#docker
 
+      - name: Verify QuickNotes binary hash
+        run: |
+          nix build .#quicknotes --out-link quicknotes-result
+          nix-store --query --hash "$(readlink quicknotes-result)"
+
       - name: Test Docker container
         run: |
           docker load < result
