@@ -40,7 +40,13 @@
               pathsToLink = [ "/bin" "/etc" ];
             };
 
+            extraCommands = ''
+              mkdir -p data
+              chmod 777 data
+            '';
+
             config = {
+              WorkingDir = "/data";
               Entrypoint = [ "${quicknotes}/bin/quicknotes" ];
               ExposedPorts = {
                 "8080/tcp" = {};
