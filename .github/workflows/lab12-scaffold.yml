@@ -83,6 +83,11 @@ jobs:
           kill "$SPIN_PID" 2>/dev/null || true
           exit "$CURL_STATUS"
 
+      - name: Check Docker for benchmark
+        run: |
+          docker version
+          docker info --format 'Docker server: {{.ServerVersion}}'
+
       - name: Upload WASM artifact
         uses: actions/upload-artifact@v4
         with:
