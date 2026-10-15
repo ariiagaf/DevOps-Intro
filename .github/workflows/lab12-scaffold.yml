@@ -1,0 +1,125 @@
+name: Lab 12 - Build WASM
+
+on:
+  push:
+    branches:
+      - feature/lab12
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Go
+        uses: actions/setup-go@v5
+        with:
+          go-version: '1.25'
+
+      - name: Install TinyGo
+        run: |
+          wget -q https://github.com/tinygo-org/tinygo/releases/download/v0.41.1/tinygo_0.41.1_amd64.deb
+          sudo dpkg -i tinygo_0.41.1_amd64.deb
+          tinygo version
+
+      - name: Install Spin CLI
+        run: |
+          curl -fsSL https://developer.fermyon.com/downloads/install.sh | bash -s -- --version v3.4.0
+          chmod +x ./spin
+          ./spin --version
+
+      - name: Build WebAssembly
+        working-directory: wasm/moscow-time
+        run: |
+          go version
+          tinygo version
+          tinygo env GOVERSION
+          go mod download
+          tinygo clean
+          CGO_ENABLED=1 "$GITHUB_WORKSPACE/spin" build
+          ls -lh main.wasm
+
+      - name: Test HTTP endpoint
+        working-directory: wasm/moscow-time
+        shell: bash
+        run: |
+          "$GITHUB_WORKSPACE/spin" up --listen 127.0.0.1:3000 > spin.log 2>&1 &
+          SPIN_PID=$!
+
+          sleep 5
+          echo "===== Spin startup log ====="
+          cat spin.log
+
+          echo "===== HTTP response ====="
+          if curl --fail-with-body -i http://127.0.0.1:3000/time; then
+            CURL_STATUS=0
+          else
+            CURL_STATUS=$?
+          fi
+
+          echo "===== POST method test ====="
+          POST_STATUS=$(curl -s -o /dev/null -w "%{http_code}" \
+            -X POST http://127.0.0.1:3000/time)
+
+          echo "POST returned HTTP $POST_STATUS"
+
+          if [ "$POST_STATUS" != "405" ]; then
+            echo "ERROR: POST must return HTTP 405"
+            CURL_STATUS=1
+          fi
+
+          echo "===== Component logs ====="
+          if [ -d .spin/logs ]; then
+            find .spin/logs -type f \
+              -exec sh -c 'echo "=== $1 ==="; cat "$1"' _ {} \;
+          fi
+
+          kill "$SPIN_PID" 2>/dev/null || true
+          exit "$CURL_STATUS"
+
+      - name: Check Docker for benchmark
+        run: |
+          docker version
+          docker info --format 'Docker server: {{.ServerVersion}}'
+
+      - name: Build QuickNotes Docker image
+        run: |
+          docker build -t quicknotes:lab12 ./app
+
+      - name: Benchmark Spin vs Docker
+        run: |
+          python3 wasm/moscow-time/benchmark.py
+
+      - name: Measure artifact sizes
+        run: |
+          echo "===== WASM size ====="
+          ls -lh wasm/moscow-time/main.wasm
+          stat -c '%s bytes' wasm/moscow-time/main.wasm
+
+          echo "===== Docker image size ====="
+          docker image inspect quicknotes:lab12 \
+            --format '{{.Size}} bytes'
+
+      - name: Build and run WASI CLI bonus
+        working-directory: wasm-cli
+        run: |
+          tinygo build -target=wasip1 -o time-cli.wasm main.go
+
+          echo "===== Install Wasmtime ====="
+          curl -sSf https://wasmtime.dev/install.sh | bash
+          export PATH="$HOME/.wasmtime/bin:$PATH"
+
+          echo "===== WASI CLI output ====="
+          wasmtime run time-cli.wasm
+
+      - name: Upload WASM artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: lab12-moscow-time-wasm
+          path: wasm/moscow-time/main.wasm
