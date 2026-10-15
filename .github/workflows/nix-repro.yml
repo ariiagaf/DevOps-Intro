@@ -16,6 +16,14 @@ jobs:
       - name: Build Docker image
         run: nix build .#docker
 
+      - name: Test Docker container
+        run: |
+          docker load < result
+          docker run -d --name quicknotes-test -p 8080:8080 quicknotes:nix
+          sleep 5
+          curl --fail http://localhost:8080/health
+          docker rm -f quicknotes-test
+
       - name: Calculate SHA-256
         id: hash
         run: echo "value=$(sha256sum result | awk '{print $1}')" >> "$GITHUB_OUTPUT"
