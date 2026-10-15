@@ -76,6 +76,11 @@ jobs:
       - name: Build Docker image
         run: nix build .#docker
 
+      - name: Verify QuickNotes binary hash
+        run: |
+          nix build .#quicknotes --out-link quicknotes-result
+          nix-store --query --hash "$(readlink quicknotes-result)"
+
       - name: Calculate SHA-256
         id: hash
         run: echo "value=$(sha256sum result | awk '{print $1}')" >> "$GITHUB_OUTPUT"
