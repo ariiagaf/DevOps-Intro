@@ -5,10 +5,13 @@
 
   outputs = { self, nixpkgs }:
     let
-      system = "aarch64-darwin";
-      pkgs = import nixpkgs { inherit system; };
+      systems = [ "aarch64-darwin" "x86_64-linux" ];
 
-      quicknotes = pkgs.buildGoModule {
+      forAllSystems = f:
+        nixpkgs.lib.genAttrs systems
+          (system: f (import nixpkgs { inherit system; }));
+
+      mkQuicknotes = pkgs: pkgs.buildGoModule {
         pname = "quicknotes";
         version = "1.0.0";
         src = ./app;
@@ -19,17 +22,46 @@
       };
     in
     {
-      packages.${system} = {
-        quicknotes = quicknotes;
-        default = quicknotes;
-      };
+      packages = forAllSystems (pkgs:
+        let
+          quicknotes = mkQuicknotes pkgs;
+        in
+        {
+          inherit quicknotes;
+          default = quicknotes;
 
-      devShells.${system}.default = pkgs.mkShell {
-        packages = with pkgs; [
-          go
-          gopls
-          golangci-lint
-        ];
-      };
+          docker = pkgs.dockerTools.buildImage {
+            name = "quicknotes";
+            tag = "nix";
+
+            copyToRoot = pkgs.buildEnv {
+              name = "quicknotes-root";
+              paths = [ quicknotes pkgs.cacert ];
+              pathsToLink = [ "/bin" "/etc" ];
+            };
+
+            config = {
+              Entrypoint = [ "${quicknotes}/bin/quicknotes" ];
+              ExposedPorts = {
+                "8080/tcp" = {};
+              };
+              User = "10001:10001";
+              Env = [
+                "PORT=8080"
+                "SSL_CERT_FILE=/etc/ssl/certs/ca-bundle.crt"
+              ];
+            };
+          };
+        });
+
+      devShells = forAllSystems (pkgs: {
+        default = pkgs.mkShell {
+          packages = with pkgs; [
+            go
+            gopls
+            golangci-lint
+          ];
+        };
+      });
     };
 }
