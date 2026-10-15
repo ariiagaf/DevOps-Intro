@@ -88,6 +88,10 @@ jobs:
           docker version
           docker info --format 'Docker server: {{.ServerVersion}}'
 
+      - name: Build QuickNotes Docker image
+        run: |
+          docker build -t quicknotes:lab12 ./app
+
       - name: Upload WASM artifact
         uses: actions/upload-artifact@v4
         with:
