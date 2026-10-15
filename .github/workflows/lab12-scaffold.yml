@@ -41,6 +41,7 @@ jobs:
           tinygo version
           tinygo env GOVERSION
           go mod download
+          tinygo clean
           CGO_ENABLED=1 "$GITHUB_WORKSPACE/spin" build
           ls -lh main.wasm
 
