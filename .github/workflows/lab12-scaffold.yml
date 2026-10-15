@@ -41,7 +41,7 @@ jobs:
           tinygo version
           tinygo env GOVERSION
           go mod download
-          "$GITHUB_WORKSPACE/spin" build
+          CGO_ENABLED=1 "$GITHUB_WORKSPACE/spin" build
           ls -lh main.wasm
 
       - name: Test HTTP endpoint
