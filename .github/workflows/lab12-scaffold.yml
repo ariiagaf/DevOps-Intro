@@ -107,9 +107,9 @@ jobs:
             --format '{{.Size}} bytes'
 
       - name: Build and run WASI CLI bonus
-        working-directory: wasm/moscow-time
+        working-directory: wasm-cli
         run: |
-          tinygo build -target=wasip1 -o time-cli.wasm cli.go
+          tinygo build -target=wasip1 -o time-cli.wasm main.go
 
           echo "===== Install Wasmtime ====="
           curl -sSf https://wasmtime.dev/install.sh | bash
