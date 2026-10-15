@@ -33,7 +33,7 @@ jobs:
 
       - name: Calculate SHA-256
         id: hash
-        run: echo "value=intentionally-wrong-hash" >> "$GITHUB_OUTPUT"
+        run: echo "value=$(sha256sum result | awk '{print $1}')" >> "$GITHUB_OUTPUT"
 
   compare:
     needs: [build-a, build-b]
